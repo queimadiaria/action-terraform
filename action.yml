@@ -36,7 +36,7 @@ runs:
       uses: queimadiaria/action-vault-aws@main
       with:
         vault_addr: ${{ inputs.vault_addr }}
-        ssh_key: ${{ input.ssh_key }}
+        ssh_key: ${{ inputs.ssh_key }}
         awsqueima_environment: ${{ inputs.awsqueima_environment }}
 
     - name: Setup Teraform environment
