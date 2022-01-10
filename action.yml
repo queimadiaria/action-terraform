@@ -9,6 +9,17 @@ inputs:
     description: This should be used as target only to be applied
     required: false
     default: ''
+  awsqueima_environment:  # ID Service
+    description: AWS environment to get credentials for
+    required: true
+    default: 'main'
+  vault_addr:  # ID Service
+    description: URL to Vault endpoint
+    required: true
+  ssh_key:
+    description: SSH Key with permissions to download repos
+    required: true
+    default: ''
 
 outputs: {}
 
@@ -21,9 +32,9 @@ runs:
     - name: Setup Credentials
       uses: queimadiaria/action-vault-aws@main
       with:
-        vault_addr: ${{ secrets.VAULT_ADDR }}
-        ssh_key: ${{ secrets.SSH_KEY }}
-        awsqueima_environment: main
+        vault_addr: ${{ inputs.vault_addr }}
+        ssh_key: ${{ input.ssh_key }}
+        awsqueima_environment: ${{ inputs.awsqueima_environment }}
 
     - name: Setup Teraform environment
       run: |
@@ -41,7 +52,7 @@ runs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        cli_config_credentials_token: ${{ inputs.terraform_api_token }}
 
     - name: Terraform Init
       working-directory: ./terraform
