@@ -40,6 +40,7 @@ runs:
         awsqueima_environment: ${{ inputs.awsqueima_environment }}
 
     - name: Setup Teraform environment
+      shell: bash
       run: |
         bash config/terraform.config.sh
         cat terraform/variables.auto.tfvars
@@ -59,20 +60,24 @@ runs:
 
     - name: Terraform Init
       working-directory: ./terraform
+      shell: bash
       run:  terraform init -upgrade
       
     - name: Terraform Validate
       working-directory: ./terraform
+      shell: bash
       run:  terraform validate
 
     - name: Terraform Format
       working-directory: ./terraform
+      shell: bash
       run:  terraform fmt -recursive
 
     - name: Terraform Plan
       id: plan
       if: github.event_name == 'pull_request'
       working-directory: ./terraform
+      shell: bash
       run: 'terraform plan -no-color || echo -e "################## \n Error at Terraform Plan \n ##################"'
       
     - name: Update Pull Request
@@ -93,6 +98,7 @@ runs:
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
+      shell: bash
       run: exit 1
 
     - name: Terraform Apply
@@ -100,6 +106,7 @@ runs:
       env:
         TARGET: ${{ inputs.target_resource }}
       working-directory: ./terraform
+      shell: bash
       run: |
         if [ -z "${TARGET}" ]; then
           echo "### Apply all resources ###"
