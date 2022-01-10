@@ -1,6 +1,10 @@
 name: 'Test Migration MS'
 description: 'Queima Labs DevOps Stack - Terraform apply resources'
 inputs:
+  cache_name:
+    description: Cache usage name for step
+    required: true
+    default: terraform
   target_resource:  # ID Service
     description: This should be used as target only to be applied
     required: false
@@ -14,19 +18,6 @@ runs:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - name: Cache Terraform
-      uses: actions/cache@v2
-      with:
-        path: terraform/.terraform
-        key: ${{ runner.os }}-terraform-v1-${{ hashFiles('**/service.tf') }}
-        restore-keys: |
-          ${{ runner.os }}-terraform-v1-
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1.2.1
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
     - name: Setup Credentials
       uses: queimadiaria/action-vault-aws@main
       with:
@@ -38,6 +29,19 @@ runs:
       run: |
         bash config/terraform.config.sh
         cat terraform/variables.auto.tfvars
+
+    - name: Cache Terraform
+      uses: actions/cache@v2
+      with:
+        path: terraform/.terraform
+        key: ${{ runner.os }}-tf-${{ inputs.cache_name }}-${{ hashFiles('**/*.auto.tfvars') }}
+        restore-keys: |
+          ${{ runner.os }}-tf-${{ inputs.cache_name }}-
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
     - name: Terraform Init
       working-directory: ./terraform
@@ -78,14 +82,16 @@ runs:
       run: exit 1
 
     - name: Terraform Apply
-      if: github.event_name == 'push' && ${{ inputs.enable_all_resources }}
+      if: github.event_name == 'push'
       env:
         TARGET: ${{ inputs.target_resource }}
       working-directory: ./terraform
       run: |
         if [ -z "${TARGET}" ]; then
+          echo "### Apply all resources ###"
           terraform apply -auto-approve
         else 
+          echo "### Apply resource ${TARGET} ###"
           terraform apply -target=${TARGET} -auto-approve
         fi
 
