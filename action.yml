@@ -119,10 +119,10 @@ runs:
           terraform apply -target=${TARGET} -auto-approve
         fi
 
+        echo "OUTPUT=$(terraform output -raw ${{ inputs.state_resource_name }})" >> $GITHUB_ENV
+
     - name: Set output
       id: get_terraform_resource_output
       shell: bash
-      env: 
-        OUTPUT: $(terraform output -raw ${{ inputs.state_resource_name }})
       working-directory: ./terraform
-      run: echo "::set-output name=terraform_resource_output::${OUTPUT}"
+      run: echo "::set-output name=terraform_resource_output::${{ envOUTPUT}}"
