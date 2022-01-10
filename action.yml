@@ -24,7 +24,10 @@ inputs:
     description: PAT with repo access to write on pull request comments
     required: true
     default: ''
-outputs: {}
+outputs:
+  terraform_resource_output:
+    description: Get 
+    value: ${{ steps.get_terraform_resource_output.outputs.terraform_resource_output }}
 
 runs:
   using: "composite"
@@ -116,3 +119,11 @@ runs:
           terraform apply -target=${TARGET} -auto-approve
         fi
 
+    - name: Set output
+      id: get_terraform_resource_output
+      shell: bash
+      env: 
+        RESOURCE_OUTPUT: ${{ inputs.state_resource_name }}
+      working-directory: ./terraform
+      run: |
+        echo '::set-output name=terraform_resource_output::$(terraform output -raw ${RESOURCE_OUTPUT})'
