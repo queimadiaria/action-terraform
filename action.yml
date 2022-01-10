@@ -1,20 +1,12 @@
 name: 'Test Migration MS'
-description: 'Queima Labs DevOps Stack - Test Migration - Docker-Compose File'
+description: 'Queima Labs DevOps Stack - Terraform apply resources'
 inputs:
-  access_token:  # ID Service
-    description: Personal Access Token - Scope read:pkg
-    required: true
-  service_port:  # ID Service
-    description: Port where service is Exposed
-    required: true
-  config:
-    description: JSON with all variables to configure job
-    required: true
-    default: "{\"NODE_ENV\":\"local\"}"
-outputs:
-  random-number:
-    description: "Random number"
-    value: ${{ steps.random-number-generator.outputs.random-id }}
+  target_resource:  # ID Service
+    description: This should be used as target only to be applied
+    required: false
+    default: ''
+
+outputs: {}
 
 runs:
   using: "composite"
@@ -86,6 +78,14 @@ runs:
       run: exit 1
 
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+      if: github.event_name == 'push' && ${{ inputs.enable_all_resources }}
+      env:
+        TARGET: ${{ inputs.target_resource }}
       working-directory: ./terraform
-      run: terraform apply -auto-approve
+      run: |
+        if [ -z "${TARGET}" ]; then
+          terraform apply -auto-approve
+        else 
+          terraform apply -target=${TARGET} -auto-approve
+        fi
+
