@@ -20,7 +20,10 @@ inputs:
     description: SSH Key with permissions to download repos
     required: true
     default: ''
-
+  github_token:
+    description: PAT with repo access to write on pull request comments
+    required: true
+    default: ''
 outputs: {}
 
 runs:
@@ -78,7 +81,7 @@ runs:
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ inputs.github_token }}
         script: |
           const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
           #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
