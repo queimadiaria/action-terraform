@@ -126,4 +126,6 @@ runs:
         RESOURCE_OUTPUT: ${{ inputs.state_resource_name }}
       working-directory: ./terraform
       run: |
-        echo '::set-output name=terraform_resource_output::$(terraform output -raw ${RESOURCE_OUTPUT})'
+        export OUTPUT=$(terraform output -raw ${RESOURCE_OUTPUT})
+        echo $OUTPUT
+        echo '::set-output name=terraform_resource_output::${OUTPUT}'
