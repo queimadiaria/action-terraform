@@ -127,5 +127,10 @@ runs:
       working-directory: ./terraform
       run: |
         export OUTPUT=$(terraform output -raw ${RESOURCE_OUTPUT})
-        echo $OUTPUT
+        cat<<EOF 
+        
+        ${OUTPUT}
+
+        EOF
+
         echo "::set-output name=terraform_resource_output::${OUTPUT}"
