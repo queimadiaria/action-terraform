@@ -122,5 +122,7 @@ runs:
     - name: Set output
       id: get_terraform_resource_output
       shell: bash
+      env:
+        RESOURCE_OUTPUT: ${{ inputs.state_resource_name }}
       working-directory: ./terraform
-      run: echo "::set-output name=terraform_resource_output::'$(terraform output -json ${{ inputs.state_resource_name }} | jq -r )'"
+      run: echo "::set-output name=terraform_resource_output::'$(terraform output -json ${RESOURCE_OUTPUT} | jq -r )'"
