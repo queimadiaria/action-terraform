@@ -128,4 +128,4 @@ runs:
       run: |
         export OUTPUT=$(terraform output -raw ${RESOURCE_OUTPUT})
         echo $OUTPUT
-        echo '::set-output name=terraform_resource_output::${OUTPUT}'
+        echo "::set-output name=terraform_resource_output::${OUTPUT}"
