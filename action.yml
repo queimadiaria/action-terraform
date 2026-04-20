@@ -24,6 +24,10 @@ inputs:
     description: PAT with repo access to write on pull request comments
     required: true
     default: ''
+  backend_config_file:
+    description: 'Path to the .tfbackend file'
+    required: false
+    default: ''
 outputs:
   terraform_resource_output:
     description: Get 
@@ -64,7 +68,15 @@ runs:
     - name: Terraform Init
       working-directory: ./terraform
       shell: bash
-      run:  terraform init -upgrade
+      run: |
+        # Lógica para decidir se usa backend-config ou init padrão
+        if [ -n "${{ inputs.backend_config_file }}" ]; then
+           echo "### Initializing with custom backend config: ${{ inputs.backend_config_file }} ###"
+           terraform init -upgrade -backend-config=../${{ inputs.backend_config_file }}
+        else
+           echo "### Initializing with default backend (TF Cloud) ###"
+           terraform init -upgrade
+        fi
       
     - name: Terraform Validate
       working-directory: ./terraform
