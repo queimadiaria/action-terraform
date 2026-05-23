@@ -1,0 +1,52 @@
+name: GitLeaks Security Scan
+on:
+    pull_request:
+      branches:
+        - main
+        - master
+        - develop
+
+jobs:
+  check-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código-fonte
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Criar diretório de configuração dentro do workspace
+        run: |
+          mkdir -p $(pwd)/.configs  # Criando diretório dentro do workspace correto
+
+      - name: Verificar e definir configuração do GitLeaks
+        id: config-check
+        run: |
+          if [ -f "$(pwd)/.configs/gitleaks.toml" ]; then
+            echo "✅ Usando arquivo de configuração local: .configs/gitleaks.toml"
+          else
+            echo "⚠️ Arquivo não encontrado! Clonando do repositório central..."
+            git clone --depth=1 https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/queimadiaria/github-workflows.git /tmp/github-workflows
+            cp /tmp/github-workflows/.configs/gitleaks.toml $(pwd)/.configs/
+          fi
+          echo "config_file=$(pwd)/.configs/gitleaks.toml" >> $GITHUB_OUTPUT
+          echo "GITLEAKS_CONFIG=$(pwd)/.configs/gitleaks.toml" >> $GITHUB_ENV
+          source $GITHUB_ENV
+          
+      - name: Salvar configuração do GitLeaks como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-config
+          path: .configs/gitleaks.toml 
+
+    outputs:
+      config_file: ${{ steps.config-check.outputs.config_file }}
+
+  execute-gitleaks:
+    needs: check-and-run
+    uses: queimadiaria/github-workflows/.github/workflows/gitleaks.yml@main
+    with:
+      config_file: ${{ needs.check-and-run.outputs.config_file }}
+      pr_number: ${{ github.event.pull_request.number }}
+      repository: ${{ github.repository }}
+    secrets: inherit
